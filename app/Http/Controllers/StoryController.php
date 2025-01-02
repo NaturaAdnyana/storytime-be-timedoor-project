@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Story;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class StoryController extends Controller
 {
@@ -139,5 +140,65 @@ class StoryController extends Controller
         $story->delete();
 
         return response()->json(['message' => 'Success']);
+    }
+
+    public function uploadImage(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|string'
+            ]);
+
+            $base64Image = $request->input('file');
+
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $extension = strtolower($type[1]);
+
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                if (!in_array($extension, $allowedExtensions)) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid image extension. Allowed extensions: jpg, jpeg, png, webp',
+                        'data' => null,
+                    ], 422);
+                }
+
+                $resultCheck = substr($base64Image, strpos($base64Image, ',') + 1);
+                $photos = base64_decode($resultCheck);
+
+                if ($photos === false) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid base64 image data',
+                        'data' => null,
+                    ], 422);
+                }
+
+                $path = 'photos/stories/' . time() . '.' . $extension;
+                Storage::disk('public')->put($path, $photos);
+
+                $url = Storage::url($path);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Image uploaded successfully',
+                    'data' => [
+                        'url' => $url,
+                    ],
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid base64 image data',
+                    'data' => null,
+                ], 422);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => null,
+            ], 500);
+        }
     }
 }
