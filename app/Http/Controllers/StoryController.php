@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Story;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class StoryController extends Controller
 {
@@ -140,24 +139,5 @@ class StoryController extends Controller
         $story->delete();
 
         return response()->json(['message' => 'Success']);
-    }
-
-    public function uploadImage(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'type' => 'required|string',
-        ]);
-
-        $image = $request->file('file');
-        $type = $request->input('type');
-
-        $imageName = time() . '.' . $image->extension();
-
-        $folder = ($type === 'profile') ? 'photos/profiles' : 'photos/stories';
-
-        $image->storeAs($folder, $imageName);
-
-        return response()->json(['url' => Storage::url("$folder/$imageName")]);
     }
 }

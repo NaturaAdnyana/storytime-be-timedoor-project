@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\FileUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,12 +20,14 @@ use App\Http\Controllers\StoryController;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('logout', [UserController::class, 'logout'])->name('logout')->middleware(middleware: 'auth:sanctum');
+    Route::get('user', [UserController::class, 'user'])->name('user');
+    Route::put('user', [UserController::class, 'update'])->name('user.update');
+    Route::post('logout', [UserController::class, 'logout'])->name('logout');
     Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
     Route::post('stories/{slug}/bookmark', [StoryController::class, 'bookmark'])->name('stories.bookmark');
     Route::put('stories/{slug}', [StoryController::class, 'update'])->name('stories.update');
     Route::delete('stories/{slug}', [StoryController::class, 'destroy'])->name('stories.destroy');
-    Route::post('upload', [StoryController::class, 'uploadImage']);
+    Route::post('upload', [FileUploadController::class, 'uploadImage']);
 });
 
 Route::post('login', [UserController::class, 'login'])->name('login');

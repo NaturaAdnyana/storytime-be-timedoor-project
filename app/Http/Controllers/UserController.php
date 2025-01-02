@@ -73,6 +73,57 @@ class UserController extends Controller
         ]);
     }
 
+    public function user(Request $request)
+    {
+        return response()->json([
+            "data" => [
+                "user" => $request->user()
+            ]
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'bio' => ['string', 'max:255'],
+            'image_url' => ['string', 'max:255'],
+            'old_password' => ['required', 'string', 'min:8', 'max:255'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                "data" => [
+                    "errors" => $validator->invalid()
+                ]
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->old_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'old_password' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'bio' => $request->bio,
+            'image_url' => $request->image_url,
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        return response()->json([
+            "data" => [
+                "user" => $user
+            ]
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
