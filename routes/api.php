@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\StoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,8 +20,10 @@ use App\Http\Controllers\CategoryController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [UserController::class, 'logout'])->name('logout')->middleware(middleware: 'auth:sanctum');
+    Route::post('stories', [StoryController::class, 'store'])->name('stories.store')->middleware(middleware: 'auth:sanctum');
 });
 
 Route::post('login', [UserController::class, 'login'])->name('login');
 Route::post('register', [UserController::class, 'register'])->name('register');
 Route::get('categories', [CategoryController::class, 'index'])->name('categories');
+Route::get('stories', [StoryController::class, 'index'])->name('stories');

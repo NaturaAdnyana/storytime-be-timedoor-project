@@ -11,10 +11,12 @@ class Story extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'cover_image_url',
         'category_id',
         'user_id',
         'content',
+        'bookmark_count',
     ];
 
     protected $guarded = [
