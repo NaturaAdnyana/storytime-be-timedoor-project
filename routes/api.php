@@ -27,7 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('stories/{slug}/bookmark', [StoryController::class, 'bookmark'])->name('stories.bookmark');
     Route::put('stories/{slug}', [StoryController::class, 'update'])->name('stories.update');
     Route::delete('stories/{slug}', [StoryController::class, 'destroy'])->name('stories.destroy');
-    Route::post('upload', [FileUploadController::class, 'uploadImage']);
+    Route::post('upload', [FileUploadController::class, 'upload_image']);
 });
 
 Route::post('login', [UserController::class, 'login'])->name('login');

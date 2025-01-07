@@ -12,65 +12,88 @@ class UserController extends Controller
 {
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required',
+        // Validate input fields
+        $validatedData = $request->validate([
+            'username_or_email' => 'required',
             'password' => 'required',
+        ], [
+            'username_or_email.required' => 'The username or email field is required.',
+            'password.required' => 'The password field is required.',
         ]);
 
-        if ($validator->fails()) {
+        $user = User::where('email', $validatedData['username_or_email'])
+            ->orWhere('username', $validatedData['username_or_email'])
+            ->first();
+
+        if (!$user || !Hash::check($validatedData['password'], $user->password)) {
             return response()->json([
-                "data" => [
-                    "errors" => $validator->invalid()
-                ]
-            ], 422);
+                "status" => "error",
+                "message" => "The provided credentials are incorrect.",
+            ], 401);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $token = $user->createToken("authToken")->plainTextToken;
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $token = $user->createToken("tokenName")->plainTextToken;
+        // $cookie = cookie('token', $token, 60 * 24 * 7, '/', null, true, true, false, 'None');
 
         return response()->json([
+            "status" => "success",
+            "message" => "Login successful.",
             "data" => [
+                "user" => [
+                    "id" => $user->id,
+                    "username" => $user->username,
+                    "name" => $user->name,
+                    "email" => $user->email,
+                ],
                 "token" => $token
             ]
-        ]);
+        ], 200);
     }
 
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'max:255'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                "data" => [
-                    "errors" => $validator->invalid()
-                ]
-            ], 422);
-        }
+        $validatedData = $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'username' => ['required', 'string', 'max:255', 'unique:users', 'regex:/^[A-Za-z0-9._]+$/'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8', 'confirmed', 'max:255', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'],
+            ],
+            [
+                'name.required' => "The name field is required.",
+                'username.required' => "The username field is required",
+                'email.required' => 'The email field is required.',
+                'email.email' => 'The email must be a valid email address.',
+                'password.required' => 'The password field is required.',
+                'password.min' => 'The password must be at least 8 characters.',
+                'password.confirmed' => 'The password confirmation does not match.',
+                'password.regex' => 'The password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
+            ]
+        );
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validatedData['name'],
+            'username' => $validatedData['username'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
         ]);
 
         $token = $user->createToken("tokenName")->plainTextToken;
 
         return response()->json([
+            "status" => "success",
+            "message" => "Register successful.",
             "data" => [
+                "user" => [
+                    "id" => $user->id,
+                    "username" => $user->username,
+                    "name" => $user->name,
+                    "email" => $user->email,
+                ],
                 "token" => $token
             ]
-        ]);
+        ], 201);
     }
 
     public function user(Request $request)
@@ -88,7 +111,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'bio' => ['string', 'max:255'],
-            'image_url' => ['string', 'max:255'],
+            'avatar' => ['string', 'max:255'],
             'old_password' => ['required', 'string', 'min:8', 'max:255'],
             'new_password' => ['required', 'string', 'min:8', 'confirmed', 'max:255'],
         ]);
@@ -113,7 +136,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'bio' => $request->bio,
-            'image_url' => $request->image_url,
+            'avatar' => $request->image_url,
             'password' => Hash::make($request->new_password),
         ]);
 

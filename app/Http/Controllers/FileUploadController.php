@@ -7,22 +7,22 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUploadController extends Controller
 {
-    public function uploadImage(Request $request)
+    public function upload_image(Request $request)
     {
-        $request->validate([
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'type' => 'required|string',
+        $validatedData = $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'type' => 'required|string|in:profile,stories',
         ]);
 
-        $image = $request->file('file');
-        $type = $request->input('type');
+        $image = $validatedData['file'];
+        $type = $validatedData['type'];
 
         $imageName = time() . '.' . $image->extension();
 
         $folder = ($type === 'profile') ? 'photos/profiles' : 'photos/stories';
 
-        $image->storeAs($folder, $imageName);
+        $image->storeAs($folder, $imageName, 'public');
 
-        return response()->json(['url' => Storage::url("$folder/$imageName")]);
+        return response()->json(['url' => Storage::url("$folder/$imageName")], 200);
     }
 }
