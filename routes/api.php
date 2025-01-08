@@ -21,7 +21,7 @@ use App\Http\Controllers\FileUploadController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [UserController::class, 'user'])->name('user');
-    Route::put('user', [UserController::class, 'update'])->name('user.update');
+    Route::patch('user', [UserController::class, 'update'])->name('user.update');
     Route::post('logout', [UserController::class, 'logout'])->name('logout');
     Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
     Route::post('stories/{slug}/bookmark', [StoryController::class, 'bookmark'])->name('stories.bookmark');

@@ -9,10 +9,19 @@ class FileUploadController extends Controller
 {
     public function upload_image(Request $request)
     {
-        $validatedData = $request->validate([
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'type' => 'required|string|in:profile,stories',
-        ]);
+        $validatedData = $request->validate(
+            [
+                'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'type' => 'required|string|in:profile,stories',
+            ],
+            [
+                'file.required' => 'The image file is required.',
+                'file.image' => 'The uploaded file must be an image.',
+                'file.mimes' => 'The image must be in jpeg, png, jpg, gif, or webp format.',
+                'file.max' => 'The image size must not exceed 2MB.',
+                'type.in' => 'The type must be either "profile" or "stories".',
+            ]
+        );
 
         $image = $validatedData['file'];
         $type = $validatedData['type'];
