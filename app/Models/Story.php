@@ -12,7 +12,6 @@ class Story extends Model
     protected $fillable = [
         'title',
         'slug',
-        'cover_image_url',
         'category_id',
         'user_id',
         'content',
@@ -37,5 +36,10 @@ class Story extends Model
     public function bookmarks()
     {
         return $this->hasMany(Bookmark::class);
+    }
+
+    public function images()
+    {
+        return $this->morphMany(Image::class, 'imageable');
     }
 }

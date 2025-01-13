@@ -43,21 +43,39 @@ class StoryController extends Controller
     {
         $request->validate([
             'title' => 'required|string',
-            'cover_image_url' => 'required|url',
+            'images' => 'required|array',
+            'images.*' => 'string',
             'category_id' => 'required|exists:categories,id',
             'content' => 'required|string',
         ]);
 
+        $slug = Str::slug($request->title);
+
+        if (Story::where('slug', $slug)->exists()) {
+            return response()->json([
+                'message' => 'The title is already in use. Please choose a different title.',
+                'errors' => [
+                    'title' => ['The title is already in use. Please choose a different title.'],
+                ],
+            ], 422);
+        }
+
         $story = Story::create([
             'title' => $request->title,
-            'slug' => Str::slug($request->title),
-            'cover_image_url' => $request->cover_image_url,
+            'slug' => $slug,
             'category_id' => $request->category_id,
             'user_id' => auth()->id(),
             'content' => $request->content,
         ]);
 
-        return response()->json($story);
+        foreach ($request->images as $path) {
+            $story->images()->create(['path' => $path]);
+        }
+
+        return response()->json([
+            'message' => 'Story created successfully!',
+            'story' => $story->load('images')
+        ], 201);
     }
 
     public function show($slug)
