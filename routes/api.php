@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\BookmarkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,16 +24,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [UserController::class, 'user'])->name('user');
     Route::patch('user', [UserController::class, 'update'])->name('user.update');
     Route::post('logout', [UserController::class, 'logout'])->name('logout');
-    Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
-    Route::post('stories/{slug}/bookmark', [StoryController::class, 'bookmark'])->name('stories.bookmark');
-    Route::put('stories/{slug}', [StoryController::class, 'update'])->name('stories.update');
-    Route::delete('stories/{slug}', [StoryController::class, 'destroy'])->name('stories.destroy');
+
     Route::post('upload', [FileUploadController::class, 'upload_image']);
+
+    Route::get('stories/my', [StoryController::class, 'my_stories'])->name('stories.my');
+    Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
+    Route::put('stories/{slug}', [StoryController::class, 'update'])->name('stories.update');
+    Route::delete('stories/{id}', [StoryController::class, 'destroy'])->name('stories.destroy');
+
+    Route::post('stories/bookmark/{id}', [BookmarkController::class, 'store'])->name('bookmarks.store');
 });
 
 Route::post('login', [UserController::class, 'login'])->name('login');
 Route::post('register', [UserController::class, 'register'])->name('register');
+
 Route::get('categories', [CategoryController::class, 'index'])->name('categories');
-Route::get('stories/{slug}', [StoryController::class, 'show'])->name('stories.show');
+
 Route::get('stories', [StoryController::class, 'index'])->name('stories');
 Route::get('stories/{slug}', [StoryController::class, 'show'])->name('stories.show');

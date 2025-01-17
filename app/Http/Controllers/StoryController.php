@@ -13,8 +13,11 @@ class StoryController extends Controller
         $keyword = $request->input('keyword');
         $categoryName = $request->input('category');
         $sortBy = $request->input('sort_by', 'newest');
+        $userId = auth('sanctum')->id();
 
-        $stories = Story::with('category')
+        $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        }])
             ->when($keyword, function ($query) use ($keyword) {
                 return $query->where('title', 'like', "%$keyword%");
             })
@@ -36,7 +39,11 @@ class StoryController extends Controller
             })
             ->paginate(10);
 
-        return response()->json($stories);
+        return response()->json([
+            "data" => [
+                "stories" => $stories
+            ]
+        ]);
     }
 
     public function store(Request $request)
@@ -74,7 +81,7 @@ class StoryController extends Controller
 
         return response()->json([
             'message' => 'Story created successfully!',
-            'story' => $story->load('images')
+            // 'story' => $story->load('images')
         ], 201);
     }
 
@@ -119,32 +126,58 @@ class StoryController extends Controller
         return response()->json($story);
     }
 
-    public function bookmark($slug)
+    public function my_stories(Request $request)
     {
-        $story = Story::where('slug', $slug)->first();
+        $keyword = $request->input('keyword');
+        $categoryName = $request->input('category');
+        $sortBy = $request->input('sort_by', 'newest');
+        $userId = auth()->id();
+        // $userId = auth('sanctum')->id();
 
-        if (!$story) {
-            return response()->json(['message' => 'Story not found'], 404);
-        }
+        $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        }])
+            ->when($keyword, function ($query) use ($keyword) {
+                return $query->where('title', 'like', "%$keyword%");
+            })
+            ->when($categoryName, function ($query) use ($categoryName) {
+                return $query->whereHas('category', function ($query) use ($categoryName) {
+                    return $query->where('name', $categoryName);
+                });
+            })
+            ->when($sortBy, function ($query) use ($sortBy) {
+                if ($sortBy === 'newest') {
+                    return $query->orderBy('created_at', 'desc');
+                } elseif ($sortBy === 'popular') {
+                    return $query->orderBy('bookmark_count', 'desc');
+                } elseif ($sortBy === 'a-z') {
+                    return $query->orderBy('title', 'asc');
+                } elseif ($sortBy === 'z-a') {
+                    return $query->orderBy('title', 'desc');
+                }
+            })
+            ->where('user_id', $userId)
+            // ->whereHas('bookmarks', function ($query) use ($userId) {
+            //     $query->where('user_id', $userId);
+            // })
+            ->paginate(10);
 
-        $bookmark = $story->bookmarks()->where('user_id', auth()->id())->first();
+        return response()->json([
+            "data" => [
+                "stories" => $stories
+            ]
+        ]);
 
-        if ($bookmark) {
-            $bookmark->delete();
-            $story->decrement('bookmark_count');
-        } else {
-            $story->bookmarks()->create([
-                'user_id' => auth()->id(),
-            ]);
-            $story->increment('bookmark_count');
-        }
-
-        return response()->json(['message' => 'Success']);
+        // if (auth('sanctum')->check()) {
+        //     return response()->json(['message' => auth('sanctum')->id()]);
+        // } else {
+        //     return response()->json(['message' => auth('sanctum')->id()]);
+        // }
     }
 
-    public function destroy($slug)
+    public function destroy($id)
     {
-        $story = Story::where('slug', $slug)->first();
+        $story = Story::find($id);
 
         if (!$story) {
             return response()->json(['message' => 'Story not found'], 404);
