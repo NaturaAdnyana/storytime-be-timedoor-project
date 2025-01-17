@@ -27,12 +27,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('upload', [FileUploadController::class, 'upload_image']);
 
-    Route::get('stories/my', [StoryController::class, 'my_stories'])->name('stories.my');
     Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
     Route::put('stories/{slug}', [StoryController::class, 'update'])->name('stories.update');
     Route::delete('stories/{id}', [StoryController::class, 'destroy'])->name('stories.destroy');
 
-    Route::post('stories/bookmark/{id}', [BookmarkController::class, 'store'])->name('bookmarks.store');
+    Route::get('stories/my', [StoryController::class, 'my_stories'])->name('stories.my');
+
+    Route::get('stories/bookmarks', [BookmarkController::class, 'index'])->name('bookmarks');
+    Route::post('stories/bookmarks/{id}', [BookmarkController::class, 'store'])->name('bookmarks.store');
 });
 
 Route::post('login', [UserController::class, 'login'])->name('login');
