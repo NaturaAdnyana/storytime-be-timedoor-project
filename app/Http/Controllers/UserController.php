@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -40,12 +42,12 @@ class UserController extends Controller
             "status" => "success",
             "message" => "Login successful.",
             "data" => [
-                "user" => [
-                    "id" => $user->id,
-                    "username" => $user->username,
-                    "name" => $user->name,
-                    "email" => $user->email,
-                ],
+                // "user" => [
+                //     "id" => $user->id,
+                //     "username" => $user->username,
+                //     "name" => $user->name,
+                //     "email" => $user->email,
+                // ],
                 "token" => $token
             ]
         ], 200);
@@ -86,12 +88,12 @@ class UserController extends Controller
             "status" => "success",
             "message" => "Register successful.",
             "data" => [
-                "user" => [
-                    "id" => $user->id,
-                    "username" => $user->username,
-                    "name" => $user->name,
-                    "email" => $user->email,
-                ],
+                // "user" => [
+                //     "id" => $user->id,
+                //     "username" => $user->username,
+                //     "name" => $user->name,
+                //     "email" => $user->email,
+                // ],
                 "token" => $token
             ]
         ], 201);
@@ -99,6 +101,22 @@ class UserController extends Controller
 
     public function user(Request $request)
     {
+        // $avatar = asset($request->user()->avatar);
+
+        // return JsonResource::make([
+        //     "data" => [
+        //         'message' => 'User fetched successfully.',
+        //         "user" => [
+        //             'id' => $request->user()->id,
+        //             'name' => $request->user()->name,
+        //             'username' => $request->user()->username,
+        //             'email' => $request->user()->email,
+        //             'bio' => $request->user()->bio,
+        //             'avatar' => $request->user()->avatar ? $avatar : null,
+        //         ],
+        //     ]
+        // ]);
+
         return response()->json([
             "data" => [
                 "user" => $request->user()
@@ -164,7 +182,7 @@ class UserController extends Controller
         return response()->json([
             "data" => [
                 'message' => 'Profile updated successfully.',
-                'user' => $user,
+                // 'user' => $user,
             ]
         ]);
     }

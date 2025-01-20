@@ -32,6 +32,8 @@ class FileUploadController extends Controller
 
         $image->storeAs($folder, $imageName, 'public');
 
-        return response()->json(['url' => Storage::url("$folder/$imageName")], 200);
+        // return response()->json(['url' => Storage::url("$folder/$imageName")], 200);
+        // $avatar = asset($request->user()->avatar);
+        return response()->json(['url' => asset(Storage::url("$folder/$imageName"))], 200);
     }
 }
