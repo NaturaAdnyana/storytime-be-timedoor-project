@@ -12,7 +12,8 @@ class StoryController extends Controller
     {
         $keyword = $request->input('keyword');
         $categoryName = $request->input('category');
-        $sortBy = $request->input('sort_by', 'newest');
+        $sortBy = $request->input('sort', 'newest');
+        $paginate = $request->input('paginate', 12);
         $userId = auth('sanctum')->id();
 
         $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
@@ -37,7 +38,7 @@ class StoryController extends Controller
                     return $query->orderBy('title', 'desc');
                 }
             })
-            ->paginate(10);
+            ->paginate($paginate);
 
         return response()->json([
             "data" => [
@@ -87,7 +88,11 @@ class StoryController extends Controller
 
     public function show($slug)
     {
-        $story = Story::where('slug', $slug)->first();
+        $userId = auth('sanctum')->id();
+
+        $story = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        }])->where('slug', $slug)->first();
 
         if (!$story) {
             return response()->json(['message' => 'Story not found'], 404);
@@ -96,9 +101,10 @@ class StoryController extends Controller
         return response()->json($story);
     }
 
-    public function update(Request $request, $slug)
+    public function update(Request $request, $id)
     {
-        $story = Story::where('slug', $slug)->first();
+        $story = Story::find($id);
+        $slug = Str::slug($request->title);
 
         if (!$story) {
             return response()->json(['message' => 'Story not found'], 404);
@@ -108,20 +114,40 @@ class StoryController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
+        $existingStory = Story::where('slug', $slug)->where('id', '!=', $story->id)->exists();
+
+        if ($existingStory) {
+            return response()->json([
+                'message' => 'The title is already in use. Please choose a different title.',
+                'errors' => [
+                    'title' => ['The title is already in use. Please choose a different title.'],
+                ],
+            ], 422);
+        }
+
         $request->validate([
             'title' => 'required|string',
-            'cover_image_url' => 'required|url',
+            'images' => 'required|array',
+            'images.*' => 'string',
             'category_id' => 'required|exists:categories,id',
             'content' => 'required|string',
         ]);
 
         $story->update([
             'title' => $request->title,
-            'slug' => Str::slug($request->title),
-            'cover_image_url' => $request->cover_image_url,
+            'slug' => $slug,
             'category_id' => $request->category_id,
+            'user_id' => auth()->id(),
             'content' => $request->content,
         ]);
+
+        if ($request->has('images')) {
+            $story->images()->delete();
+
+            foreach ($request->images as $path) {
+                $story->images()->create(['path' => $path]);
+            }
+        }
 
         return response()->json($story);
     }
@@ -173,6 +199,31 @@ class StoryController extends Controller
         // } else {
         //     return response()->json(['message' => auth('sanctum')->id()]);
         // }
+    }
+
+    public function getSimilarStories($slug)
+    {
+        $userId = auth('sanctum')->id();
+
+        $story = Story::where('slug', $slug)->first();
+
+        if (!$story) {
+            return response()->json(['message' => 'Story not found'], 404);
+        }
+
+        $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        }])
+            ->where('category_id', $story->category_id)
+            ->where('id', '!=', $story->id)
+            ->inRandomOrder()
+            ->paginate(3);
+
+        return response()->json([
+            "data" => [
+                "stories" => $stories
+            ]
+        ]);
     }
 
     public function destroy($id)

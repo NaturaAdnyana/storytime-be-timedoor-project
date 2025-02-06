@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('upload', [FileUploadController::class, 'upload_image']);
 
     Route::post('stories', [StoryController::class, 'store'])->name('stories.store');
-    Route::put('stories/{slug}', [StoryController::class, 'update'])->name('stories.update');
+    Route::put('stories/{id}', [StoryController::class, 'update'])->name('stories.update');
     Route::delete('stories/{id}', [StoryController::class, 'destroy'])->name('stories.destroy');
 
     Route::get('stories/my', [StoryController::class, 'my_stories'])->name('stories.my');
@@ -44,3 +44,4 @@ Route::get('categories', [CategoryController::class, 'index'])->name('categories
 
 Route::get('stories', [StoryController::class, 'index'])->name('stories');
 Route::get('stories/{slug}', [StoryController::class, 'show'])->name('stories.show');
+Route::get('/stories/{slug}/similar', [StoryController::class, 'getSimilarStories'])->name('stories.similar');
