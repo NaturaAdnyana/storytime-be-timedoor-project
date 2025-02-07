@@ -58,9 +58,12 @@ class BookmarkController extends Controller
 
         $bookmark = $story->bookmarks()->where('user_id', auth()->id())->first();
 
+        $message = "Successfully added story to bookmarks";
+
         if ($bookmark) {
             $bookmark->delete();
             $story->decrement('bookmark_count');
+            $message = "Successfully remove story from bookmarks";
         } else {
             $story->bookmarks()->create([
                 'user_id' => auth()->id(),
@@ -68,6 +71,6 @@ class BookmarkController extends Controller
             $story->increment('bookmark_count');
         }
 
-        return response()->json(['message' => 'Success'], 200);
+        return response()->json(['message' => $message], 200);
     }
 }

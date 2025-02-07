@@ -98,7 +98,9 @@ class StoryController extends Controller
             return response()->json(['message' => 'Story not found'], 404);
         }
 
-        return response()->json($story);
+        return response()->json([
+            "data" => $story
+        ]);
     }
 
     public function update(Request $request, $id)
