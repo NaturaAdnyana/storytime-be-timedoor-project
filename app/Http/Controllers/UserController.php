@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -14,8 +16,7 @@ class UserController extends Controller
 {
     public function login(Request $request)
     {
-        // Validate input fields
-        $validatedData = $request->validate([
+        $credentials = $request->validate([
             'username_or_email' => 'required',
             'password' => 'required',
         ], [
@@ -23,34 +24,30 @@ class UserController extends Controller
             'password.required' => 'The password field is required.',
         ]);
 
-        $user = User::where('email', $validatedData['username_or_email'])
-            ->orWhere('username', $validatedData['username_or_email'])
+        // Check if the user exists by email or username
+        $user = User::where('email', $credentials['username_or_email'])
+            ->orWhere('username', $credentials['username_or_email'])
             ->first();
 
-        if (!$user || !Hash::check($validatedData['password'], $user->password)) {
-            return response()->json([
-                "status" => "error",
-                "message" => "The provided credentials are incorrect.",
-            ], 401);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
         }
 
-        $token = $user->createToken("authToken")->plainTextToken;
+        // Attempt login using email or username
+        $loginAttempt = Auth::attempt([
+            'email' => filter_var($credentials['username_or_email'], FILTER_VALIDATE_EMAIL) ? $credentials['username_or_email'] : $user->email,
+            'password' => $credentials['password'],
+        ]);
 
-        // $cookie = cookie('token', $token, 60 * 24 * 7, '/', null, true, true, false, 'None');
+        if ($loginAttempt) {
+            $request->session()->regenerate();
+            return response()->json([
+                "status" => "success",
+                "message" => "Login successful.",
+            ], 200);
+        }
 
-        return response()->json([
-            "status" => "success",
-            "message" => "Login successful.",
-            "data" => [
-                // "user" => [
-                //     "id" => $user->id,
-                //     "username" => $user->username,
-                //     "name" => $user->name,
-                //     "email" => $user->email,
-                // ],
-                "token" => $token
-            ]
-        ], 200);
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
     public function register(Request $request)
@@ -182,19 +179,19 @@ class UserController extends Controller
         return response()->json([
             "data" => [
                 'message' => 'Profile updated successfully.',
-                // 'user' => $user,
             ]
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
-            "data" => [
-                "message" => "Logged out successfully"
-            ]
-        ]);
+            "data" => ["message" => "Logged out successfully"]
+        ])->withCookie(cookie()->forget('laravel_session'));
     }
 }

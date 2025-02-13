@@ -23,7 +23,6 @@ use App\Http\Controllers\BookmarkController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [UserController::class, 'user'])->name('user');
     Route::patch('user', [UserController::class, 'update'])->name('user.update');
-    Route::post('logout', [UserController::class, 'logout'])->name('logout');
 
     Route::post('upload', [FileUploadController::class, 'upload_image']);
 
@@ -38,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('login', [UserController::class, 'login'])->name('login');
+Route::post('logout', [UserController::class, 'logout'])->name('logout');
 Route::post('register', [UserController::class, 'register'])->name('register');
 
 Route::get('categories', [CategoryController::class, 'index'])->name('categories');
