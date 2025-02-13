@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,6 @@ class UserController extends Controller
             'password.required' => 'The password field is required.',
         ]);
 
-        // Check if the user exists by email or username
         $user = User::where('email', $credentials['username_or_email'])
             ->orWhere('username', $credentials['username_or_email'])
             ->first();
@@ -33,7 +33,6 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Attempt login using email or username
         $loginAttempt = Auth::attempt([
             'email' => filter_var($credentials['username_or_email'], FILTER_VALIDATE_EMAIL) ? $credentials['username_or_email'] : $user->email,
             'password' => $credentials['password'],
@@ -41,10 +40,14 @@ class UserController extends Controller
 
         if ($loginAttempt) {
             $request->session()->regenerate();
+
+            $expirationTime = Carbon::now()->addDays(7)->timestamp;
+            $authExpirationCookie = Cookie::make('auth_expiration', $expirationTime, 7 * 24 * 60, '/', null, false, false);
+
             return response()->json([
                 "status" => "success",
                 "message" => "Login successful.",
-            ], 200);
+            ], 200)->withCookie($authExpirationCookie);
         }
 
         return response()->json(['message' => 'Invalid credentials'], 401);
@@ -79,41 +82,25 @@ class UserController extends Controller
             'password' => Hash::make($validatedData['password']),
         ]);
 
-        $token = $user->createToken("tokenName")->plainTextToken;
+        if ($user) {
+            Auth::login($user);
 
-        return response()->json([
-            "status" => "success",
-            "message" => "Register successful.",
-            "data" => [
-                // "user" => [
-                //     "id" => $user->id,
-                //     "username" => $user->username,
-                //     "name" => $user->name,
-                //     "email" => $user->email,
-                // ],
-                "token" => $token
-            ]
-        ], 201);
+            $request->session()->regenerate();
+
+            $expirationTime = Carbon::now()->addDays(7)->timestamp;
+            $authExpirationCookie = Cookie::make('auth_expiration', $expirationTime, 7 * 24 * 60, '/', null, false, false);
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Register successful.",
+            ], 201)->withCookie($authExpirationCookie);
+        }
+
+        return response()->json(['message' => 'Register Failed'], 400);
     }
 
     public function user(Request $request)
     {
-        // $avatar = asset($request->user()->avatar);
-
-        // return JsonResource::make([
-        //     "data" => [
-        //         'message' => 'User fetched successfully.',
-        //         "user" => [
-        //             'id' => $request->user()->id,
-        //             'name' => $request->user()->name,
-        //             'username' => $request->user()->username,
-        //             'email' => $request->user()->email,
-        //             'bio' => $request->user()->bio,
-        //             'avatar' => $request->user()->avatar ? $avatar : null,
-        //         ],
-        //     ]
-        // ]);
-
         return response()->json([
             "data" => [
                 "user" => $request->user()
@@ -190,8 +177,10 @@ class UserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        $forgetAuthExpiration = Cookie::forget('auth_expiration');
+
         return response()->json([
             "data" => ["message" => "Logged out successfully"]
-        ])->withCookie(cookie()->forget('laravel_session'));
+        ])->withCookie($forgetAuthExpiration);
     }
 }

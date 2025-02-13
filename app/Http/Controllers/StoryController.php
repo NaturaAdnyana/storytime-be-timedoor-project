@@ -99,7 +99,7 @@ class StoryController extends Controller
         }
 
         return response()->json([
-            "data" => $story
+            "data" => $story,
         ]);
     }
 
