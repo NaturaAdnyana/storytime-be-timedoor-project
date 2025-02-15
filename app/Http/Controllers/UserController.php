@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,15 +18,9 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'username_or_email' => 'required',
-            'password' => 'required',
-        ], [
-            'username_or_email.required' => 'The username or email field is required.',
-            'password.required' => 'The password field is required.',
-        ]);
+        $credentials = $request->validated();
 
         $user = User::where('email', $credentials['username_or_email'])
             ->orWhere('username', $credentials['username_or_email'])
@@ -53,33 +50,14 @@ class UserController extends Controller
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validatedData = $request->validate(
-            [
-                'name' => ['required', 'string', 'max:255'],
-                'username' => ['required', 'string', 'max:255', 'unique:users', 'regex:/^[A-Za-z0-9._]+$/'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', 'string', 'min:8', 'confirmed', 'max:255', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'],
-            ],
-            [
-                'name.required' => "The name field is required.",
-                'username.required' => "The username field is required",
-                'username.regex' => 'The username may only contain letters, numbers, dots, and underscores.',
-                'email.required' => 'The email field is required.',
-                'email.email' => 'The email must be a valid email address.',
-                'password.required' => 'The password field is required.',
-                'password.min' => 'The password must be at least 8 characters.',
-                'password.confirmed' => 'The password confirmation does not match.',
-                'password.regex' => 'The password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
-            ]
-        );
 
         $user = User::create([
-            'name' => $validatedData['name'],
-            'username' => $validatedData['username'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
         if ($user) {
@@ -108,29 +86,9 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request)
     {
-        $validatedData = $request->validate(
-            [
-                'name' => ['required', 'string', 'max:255'],
-                // 'username' => ['string', 'max:255', 'unique:users', 'regex:/^[A-Za-z0-9._]+$/'],
-                // 'email' => ['string', 'email', 'max:255', 'unique:users'],
-                'bio' => ['string', 'max:255'],
-                'avatar' => ['string', 'max:255'],
-                'old_password' => ['string', 'min:8', 'max:255'],
-                'new_password' => ['string', 'min:8', 'confirmed', 'max:255', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'],
-            ],
-            [
-                'name.required' => "The name field is required.",
-                // 'username.regex' => 'The username may only contain letters, numbers, dots, and underscores.',
-                // 'email.email' => 'The email must be a valid email address.',
-                'old_password.min' => 'The password must be at least 8 characters.',
-                'new_password.min' => 'The password must be at least 8 characters.',
-                'new_password.confirmed' => 'The password confirmation does not match.',
-                'new_password.regex' => 'The password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
-            ]
-        );
-
+        $validatedData = $request->validated();
         $user = $request->user();
 
         if ($request->filled('old_password') && !Hash::check($request->old_password, $user->password)) {
