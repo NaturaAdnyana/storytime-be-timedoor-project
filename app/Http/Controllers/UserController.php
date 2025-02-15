@@ -39,7 +39,7 @@ class UserController extends Controller
             $request->session()->regenerate();
 
             $expirationTime = Carbon::now()->addDays(7)->timestamp;
-            $authExpirationCookie = Cookie::make('auth_expiration', $expirationTime, 7 * 24 * 60, '/', null, false, false);
+            $authExpirationCookie = Cookie::make('auth_expiration', $expirationTime, env('SESSION_LIFETIME', 420), '/', null, false, false);
 
             return response()->json([
                 "status" => "success",
@@ -66,7 +66,7 @@ class UserController extends Controller
             $request->session()->regenerate();
 
             $expirationTime = Carbon::now()->addDays(7)->timestamp;
-            $authExpirationCookie = Cookie::make('auth_expiration', $expirationTime, 7 * 24 * 60, '/', null, false, false);
+            $authExpirationCookie = Cookie::make('auth_expiration', $expirationTime, env('SESSION_LIFETIME', 420), '/', null, false, false);
 
             return response()->json([
                 "status" => "success",
