@@ -2,29 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UploadImageRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FileUploadController extends Controller
 {
-    public function upload_image(Request $request)
+    public function upload_image(UploadImageRequest $request)
     {
-        $validatedData = $request->validate(
-            [
-                'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                'type' => 'required|string|in:profile,story',
-            ],
-            [
-                'file.required' => 'The image file is required.',
-                'file.image' => 'The uploaded file must be an image.',
-                'file.mimes' => 'The image must be in jpeg, png, jpg, gif, or webp format.',
-                'file.max' => 'The image size must not exceed 2MB.',
-                'type.in' => 'The type must be either "profile" or "story".',
-            ]
-        );
 
-        $image = $validatedData['file'];
-        $type = $validatedData['type'];
+        $image = $request->file('file');
+        $type = $request->input('type');
 
         $imageName = time() . '.' . $image->extension();
 
