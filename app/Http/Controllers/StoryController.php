@@ -29,7 +29,7 @@ class StoryController extends Controller
             })
             ->when($sortBy, function ($query) use ($sortBy) {
                 if ($sortBy === 'newest') {
-                    return $query->orderBy('created_at', 'desc');
+                    return $query->latest();
                 } elseif ($sortBy === 'popular') {
                     return $query->orderBy('bookmark_count', 'desc');
                 } elseif ($sortBy === 'a-z') {
@@ -42,7 +42,8 @@ class StoryController extends Controller
 
         return response()->json([
             "data" => [
-                "stories" => $stories
+                "stories" => $stories,
+                "type" => $sortBy
             ]
         ]);
     }
