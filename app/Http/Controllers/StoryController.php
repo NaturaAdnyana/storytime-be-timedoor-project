@@ -28,14 +28,14 @@ class StoryController extends Controller
                 });
             })
             ->when($sortBy, function ($query) use ($sortBy) {
-                if ($sortBy === 'newest') {
-                    return $query->latest();
-                } elseif ($sortBy === 'popular') {
+                if ($sortBy === 'popular') {
                     return $query->orderBy('bookmark_count', 'desc');
                 } elseif ($sortBy === 'a-z') {
                     return $query->orderBy('title', 'asc');
                 } elseif ($sortBy === 'z-a') {
                     return $query->orderBy('title', 'desc');
+                } else {
+                    return $query->latest();
                 }
             })
             ->paginate($paginate);
@@ -175,14 +175,14 @@ class StoryController extends Controller
                 });
             })
             ->when($sortBy, function ($query) use ($sortBy) {
-                if ($sortBy === 'newest') {
-                    return $query->latest();
-                } elseif ($sortBy === 'popular') {
+                if ($sortBy === 'popular') {
                     return $query->orderBy('bookmark_count', 'desc');
                 } elseif ($sortBy === 'a-z') {
                     return $query->orderBy('title', 'asc');
                 } elseif ($sortBy === 'z-a') {
                     return $query->orderBy('title', 'desc');
+                } else {
+                    return $query->latest();
                 }
             })
             ->where('user_id', $userId)
