@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUploadController extends Controller
 {
-    public function upload_image(UploadImageRequest $request)
+    public function uploadImage(UploadImageRequest $request)
     {
 
         $image = $request->file('file');
@@ -22,6 +22,7 @@ class FileUploadController extends Controller
 
         // return response()->json(['url' => Storage::url("$folder/$imageName")], 200);
         // $avatar = asset($request->user()->avatar);
+        // return response()->json(['url' => Storage::url("$folder/$imageName")], 200);
         return response()->json(['url' => asset(Storage::url("$folder/$imageName"))], 200);
     }
 }

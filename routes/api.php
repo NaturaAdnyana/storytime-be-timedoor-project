@@ -21,7 +21,7 @@ use App\Http\Controllers\BookmarkController;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('upload', [FileUploadController::class, 'upload_image']);
+    Route::post('upload', [FileUploadController::class, 'uploadImage'])->name('upload');
 
     Route::controller(UserController::class)->group(function () {
         Route::get('user', 'user')->name('user');
@@ -30,14 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(StoryController::class)->group(function () {
         Route::post('stories', 'store')->name('stories.store');
-        Route::put('stories/{id}', 'update')->name('stories.update');
-        Route::delete('stories/{id}', 'destroy')->name('stories.destroy');
+        Route::put('stories/{story}', 'update')->name('stories.update');
+        Route::delete('stories/{story}', 'destroy')->name('stories.destroy');
         Route::get('stories/my', 'my_stories')->name('stories.my');
     });
 
     Route::controller(BookmarkController::class)->group(function () {
         Route::get('stories/bookmarks', 'index')->name('bookmarks');
-        Route::post('stories/bookmarks/{id}', 'store')->name('bookmarks.store');
+        Route::post('stories/bookmarks/{story}', 'store')->name('bookmarks.store');
     });
 });
 

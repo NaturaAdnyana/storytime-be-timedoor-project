@@ -48,10 +48,8 @@ class BookmarkController extends Controller
         ], 200);
     }
 
-    public function store($id)
+    public function store(Story $story)
     {
-        $story = Story::find($id);
-
         if (!$story) {
             return response()->json(['message' => 'Story not found'], 404);
         }

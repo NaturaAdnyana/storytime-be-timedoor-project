@@ -43,7 +43,7 @@ class StoryController extends Controller
         return response()->json([
             "data" => [
                 "stories" => $stories,
-                "type" => $sortBy
+                // "type" => $sortBy
             ]
         ]);
     }
@@ -104,9 +104,8 @@ class StoryController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Story $story)
     {
-        $story = Story::find($id);
         $slug = Str::slug($request->title);
 
         if (!$story) {
@@ -229,10 +228,8 @@ class StoryController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Story $story)
     {
-        $story = Story::find($id);
-
         if (!$story) {
             return response()->json(['message' => 'Story not found'], 404);
         }
