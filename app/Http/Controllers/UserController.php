@@ -77,11 +77,12 @@ class UserController extends Controller
         return response()->json(['message' => 'Register Failed'], 400);
     }
 
-    public function user(Request $request)
+    public function user()
     {
+        $user = auth()->user()->load('image');
         return response()->json([
             "data" => [
-                "user" => $request->user()
+                "user" => $user,
             ]
         ]);
     }
@@ -112,8 +113,9 @@ class UserController extends Controller
         }
 
         if ($request->filled('avatar')) {
-            $user->avatar = $validatedData['avatar'];
+            $user->image()->create(['path' => $validatedData['avatar']]);
         }
+
 
         if ($request->filled('new_password')) {
             $user->password = Hash::make($validatedData['new_password']);

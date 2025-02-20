@@ -16,7 +16,9 @@ class StoryController extends Controller
         $paginate = $request->input('paginate', 12);
         $userId = auth('sanctum')->id();
 
-        $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+        $stories = Story::with(['user' => function ($query) {
+            $query->with('image');
+        }, 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
             $query->where('user_id', $userId);
         }])
             ->when($keyword, function ($query) use ($keyword) {
@@ -91,7 +93,9 @@ class StoryController extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $story = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+        $story = Story::with(['user' => function ($query) {
+            $query->with('image');
+        }, 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
             $query->where('user_id', $userId);
         }])->where('slug', $slug)->first();
 
@@ -162,7 +166,9 @@ class StoryController extends Controller
         $userId = auth()->id();
         // $userId = auth('sanctum')->id();
 
-        $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+        $stories = Story::with(['user' => function ($query) {
+            $query->with('image');
+        }, 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
             $query->where('user_id', $userId);
         }])
             ->when($keyword, function ($query) use ($keyword) {
@@ -213,7 +219,9 @@ class StoryController extends Controller
             return response()->json(['message' => 'Story not found'], 404);
         }
 
-        $stories = Story::with(['user', 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
+        $stories = Story::with(['user' => function ($query) {
+            $query->with('image');
+        }, 'category', 'images', 'bookmarks' => function ($query) use ($userId) {
             $query->where('user_id', $userId);
         }])
             ->where('category_id', $story->category_id)
