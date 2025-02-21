@@ -13,7 +13,7 @@ class StoryController extends Controller
         $keyword = $request->input('keyword');
         $categoryName = $request->input('category');
         $sortBy = $request->input('sort', 'newest');
-        $paginate = $request->input('paginate', 12);
+        $paginate = max(1, min((int) $request->input('paginate', 12), 50));
         $userId = auth('sanctum')->id();
 
         $stories = Story::with(['user' => function ($query) {
